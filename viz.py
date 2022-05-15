@@ -55,8 +55,8 @@ def pfmToPointCloud(pfmFilePath, colorImagePath=""):
 
 def readCalibration(calibFilePath):
     parameters = {}
-    with open(calibFilePath, "r") as f:
-        for line in f:
+    with open(calibFilePath, "r") as file:
+        for line in file:
             try:
                 key, val = line.strip().split("=")
             except ValueError:
@@ -64,7 +64,7 @@ def readCalibration(calibFilePath):
             parameters[key] = val
     intrinsicString = parameters["cam0"]
     intrinsicMatrix = intrinsicStringToMatrix(intrinsicString)
-    baselineMm = float(parameters["baseline"])
+    baselineMm = np.float32(parameters["baseline"])
     baseline = baselineMm / 1000
     return intrinsicMatrix, baseline
 
@@ -99,11 +99,6 @@ def depthMapToPointMap(depthMap, intrinsicMatrix):
 def readColorData(colorDataPath) -> np.array:
     colorImage = o3d.io.read_image(colorDataPath)
     return np.asarray(colorImage)
-
-
-def readDepthData(depthDataPath) -> np.array:
-    raise NotImplementedError()
-
 
 
 if __name__ == "__main__":

@@ -90,7 +90,7 @@ def depthMapToPointMap(depthMap, intrinsicMatrix):
     imageCoordinatesHom = np.hstack((imageCoordinates, np.ones((height * width, 1))))
     intrinsicMatrixInv = np.linalg.inv(intrinsicMatrix)
     normalizedPointMap = (intrinsicMatrixInv @ imageCoordinatesHom.T).T
-    #normalizedPointMap /= normalizedPointMap[:,2,np.newaxis]
+    normalizedPointMap /= normalizedPointMap[:,2,np.newaxis]
     pointMapArray = depthMap.reshape(-1, 1) * normalizedPointMap
     pointMap = pointMapArray.reshape(height, width, 3)
     return pointMap

@@ -14,12 +14,13 @@ def pfmFileToDisparityMap(pfmFilePath):
         numChannels = fileTypesChannels[headerLines[0]]
         width, height = [int(val) for val in headerLines[1].split(" ")]
         isBigEndian = headerLines[2][0] == "-"
+        scale = np.abs(float(headerLines[2]))
         endianSymbol = ">" if isBigEndian else "<"
         numBytesPerFloat = 4
         numValues = width * height * numChannels
         buffer = f.read(numValues * numBytesPerFloat)
     finalShape = (height, width) if numChannels == 1 else (height, width, numChannels)
-    parsedData = np.frombuffer(buffer, dtype=np.float32).reshape(finalShape)
+    parsedData = scale * np.frombuffer(buffer, dtype=np.float32).reshape(finalShape)
     return parsedData
 
 

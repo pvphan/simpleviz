@@ -8,7 +8,7 @@ SimpleViz is a simple visualization library in a Docker container using Open3D w
 # Steps
 
 1. Clone this repository and `cd` into it.
-2. `COLOR=~/Documents/colorpath DEPTH=~/Documents/depthpath make viz`
+2. `xhost + && COLOR=~/Documents/colorpath DEPTH=~/Documents/depthpath make viz`
 
 That's all!
 

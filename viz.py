@@ -25,19 +25,15 @@ import pfm
 
 
 def main():
-    colorImagePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/im0.png")
-    colorImage = readColorData(colorImagePath)
-    colors = colorImage.reshape(-1, 3)
-
     pfmFilePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/disp1.pfm")
-    pointCloud = pfmToPointCloud(pfmFilePath)
-    pointCloud.colors = o3d.utility.Vector3dVector(colors/255)
+    colorImagePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/im0.png")
+    pointCloud = pfmToPointCloud(pfmFilePath, colorImagePath)
 
-    c = o3d.geometry.TriangleMesh.create_box()
-    o3d.visualization.draw_geometries([c, pointCloud])
+    box = o3d.geometry.TriangleMesh.create_box()
+    o3d.visualization.draw_geometries([box, pointCloud])
 
 
-def pfmToPointCloud(pfmFilePath):
+def pfmToPointCloud(pfmFilePath, colorImagePath=""):
     disparityMap = pfm.pfmFileToDisparityMap(pfmFilePath)
     calibFilePath = f"{os.path.dirname(pfmFilePath)}/calib.txt"
     intrinsicMatrix, baseline = readCalibration(calibFilePath)
@@ -49,6 +45,11 @@ def pfmToPointCloud(pfmFilePath):
 
     pointCloud = o3d.geometry.PointCloud()
     pointCloud.points = o3d.utility.Vector3dVector(points)
+
+    if colorImagePath:
+        colorImage = readColorData(colorImagePath)
+        pointCloud.colors = o3d.utility.Vector3dVector(colorImage.reshape(-1, 3)/255)
+
     return pointCloud
 
 

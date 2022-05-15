@@ -14,18 +14,69 @@ TODO: arg parse:
   use extension to automatically cast / convert data
 """
 import argparse
+import re
+import os
 
 import numpy as np
 import open3d as o3d
 
+import pfm
+
 
 def main():
+    colorImagePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/im0.png")
+    colorImage = readColorData(colorImagePath)
+    colors = colorImage.reshape(-1, 3)
+
+    pfmFilePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/disp1.pfm")
+    pointCloud = pfmToPointCloud(pfmFilePath)
+
     c = o3d.geometry.TriangleMesh.create_box()
     o3d.visualization.draw_geometries([c])
 
 
-def readColorData(colorDataPath) -> np.array:
-    raise NotImplementedError()
+def pfmToPointCloud(pfmFilePath):
+    disparityMap = pfm.pfmFileToDisparityMap(pfmFilePath)
+    calibFilePath = f"{os.path.dirname(pfmFilePath)}/calib.txt"
+    intrinsicMatrix, baseline = readCalibration(calibFilePath)
+
+    points = disparityToDepth(disparityMap, intrinsicMatrix, baseline)
+
+    pointCloud = o3d.geometry.PointCloud()
+    pointCloud.points = o3d.utility.Vector3dVector(points)
+    return pointCloud
+
+
+def readCalibration(calibFilePath):
+    parameters = {}
+    with open(calibFilePath, "r") as f:
+        for line in f:
+            try:
+                key, val = line.strip().split("=")
+            except ValueError:
+                break
+            parameters[key] = val
+    intrinsicString = parameters["cam0"]
+    intrinsicMatrix = intrinsicStringToMatrix(intrinsicString)
+    baselineMm = float(parameters["baseline"])
+    baseline = baselineMm / 1000
+    return intrinsicMatrix, baseline
+
+
+def intrinsicStringToMatrix(intrinsicString):
+    expression = ".(\d+\.\d+)|(\d+)"
+    matches = re.findall(expression, intrinsicString)
+    values = [float(sorted(match)[-1]) for match in matches]
+    return np.array(values, dtype=np.float32).reshape(3,3)
+
+
+def disparityToDepth():
+    pass
+
+
+def readColorData(colorDataPath) -> o3d.cpu.pybind.geometry.Image:
+    colorImage = o3d.io.read_image(colorDataPath)
+    return colorImage
 
 
 def readDepthData(depthDataPath) -> np.array:

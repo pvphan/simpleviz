@@ -16,7 +16,6 @@ def pfmFileToDisparityMap(pfmFilePath):
         isBigEndian = headerLines[2][0] == "-"
         endianSymbol = ">" if isBigEndian else "<"
         numBytesPerFloat = 4
-        print(width , height , numChannels , numBytesPerFloat)
         numValues = width * height * numChannels
         buffer = f.read(numValues * numBytesPerFloat)
     finalShape = (height, width) if numChannels == 1 else (height, width, numChannels)

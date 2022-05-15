@@ -31,9 +31,10 @@ def main():
 
     pfmFilePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/disp1.pfm")
     pointCloud = pfmToPointCloud(pfmFilePath)
+    pointCloud.colors = o3d.utility.Vector3dVector(colors/255)
 
     c = o3d.geometry.TriangleMesh.create_box()
-    o3d.visualization.draw_geometries([c])
+    o3d.visualization.draw_geometries([c, pointCloud])
 
 
 def pfmToPointCloud(pfmFilePath):
@@ -43,7 +44,7 @@ def pfmToPointCloud(pfmFilePath):
     focalLengthPx = intrinsicMatrix[0, 0]
 
     depthMap = disparityToDepth(disparityMap, focalLengthPx, baseline)
-    pointMap = depthMapToPointMap(depthMap)
+    pointMap = depthMapToPointMap(depthMap, intrinsicMatrix)
     points = pointMap.reshape(-1, 3)
 
     pointCloud = o3d.geometry.PointCloud()
@@ -88,14 +89,15 @@ def depthMapToPointMap(depthMap, intrinsicMatrix):
     imageCoordinatesHom = np.hstack((imageCoordinates, np.ones((height * width, 1))))
     intrinsicMatrixInv = np.linalg.inv(intrinsicMatrix)
     normalizedPointMap = (intrinsicMatrixInv @ imageCoordinatesHom.T).T
+    #normalizedPointMap /= normalizedPointMap[:,2,np.newaxis]
     pointMapArray = depthMap.reshape(-1, 1) * normalizedPointMap
     pointMap = pointMapArray.reshape(height, width, 3)
     return pointMap
 
 
-def readColorData(colorDataPath) -> o3d.cpu.pybind.geometry.Image:
+def readColorData(colorDataPath) -> np.array:
     colorImage = o3d.io.read_image(colorDataPath)
-    return colorImage
+    return np.asarray(colorImage)
 
 
 def readDepthData(depthDataPath) -> np.array:

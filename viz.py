@@ -29,13 +29,6 @@ def main():
     pfmFilePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/disp0.pfm")
     colorImagePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/im0.png")
     pointCloud = pfmToPointCloud(pfmFilePath, colorImagePath)
-    #depthMap = pfmToPointCloud(pfmFilePath, colorImagePath)
-    #depthMapNormalized = cv2.normalize(depthMap, None,
-    #        alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-    #depthMapGray = (255 * depthMapNormalized).astype(np.uint8)
-    #depthMapJet = cv2.applyColorMap(depthMapGray, cv2.COLORMAP_JET)
-    #outputPath = os.path.expanduser("~/Documents/vinhtest2.png")
-    #cv2.imwrite(outputPath, depthMapJet)
 
     box = o3d.geometry.TriangleMesh.create_box()
     o3d.visualization.draw_geometries([pointCloud])
@@ -95,14 +88,13 @@ def disparityToDepth(disparityMap, focalLengthPx, baseline):
 
 
 def depthMapToPointMap(depthMap, intrinsicMatrix):
-    # uv1 = K * xy1
-    # ==> xy1 = K^-1 * uv1
+    # s * uv1 = K * xy1
+    # ==> xy1 = s * K^-1 * uv1
     height, width = depthMap.shape[:2]
-    imageCoordinates = np.array(list(itertools.product(range(height), range(width))))
+    imageCoordinates = 0.5 + np.array(list(itertools.product(range(height), range(width))))
     imageCoordinatesHom = np.hstack((imageCoordinates, np.ones((height * width, 1))))
     intrinsicMatrixInv = np.linalg.inv(intrinsicMatrix)
     normalizedPointMap = (intrinsicMatrixInv @ imageCoordinatesHom.T).T
-    normalizedPointMap /= normalizedPointMap[:,2,np.newaxis]
     pointMapArray = depthMap.reshape(-1, 1) * normalizedPointMap
     pointMap = pointMapArray.reshape(height, width, 3)
     return pointMap
@@ -111,6 +103,15 @@ def depthMapToPointMap(depthMap, intrinsicMatrix):
 def readColorData(colorImagePath) -> np.array:
     colorImage = o3d.io.read_image(colorImagePath)
     return np.asarray(colorImage)
+
+
+def writeVisibleDepth(pfmFilePath, outputPath):
+    depthMap = pfmToPointCloud(pfmFilePath)
+    depthMapNormalized = cv2.normalize(depthMap, None,
+            alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+    depthMapGray = (255 * depthMapNormalized).astype(np.uint8)
+    depthMapJet = cv2.applyColorMap(depthMapGray, cv2.COLORMAP_JET)
+    cv2.imwrite(outputPath, depthMapJet)
 
 
 if __name__ == "__main__":

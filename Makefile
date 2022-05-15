@@ -9,8 +9,8 @@ REPO_PATH:=$(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 # TODO: support comma separated input paths
 IMAGE_TAG?=pvphan/simpleviz:0.1
 # TODO: figure out automatic detection of Intel vs NVIDIA GPU
-GPU_FLAG=--device=/dev/dri:/dev/dri
-#GPU_FLAG=--gpus 'all,"capabilities=compute,utility,graphics"'
+#GPU_FLAG=--device=/dev/dri:/dev/dri
+GPU_FLAG=--gpus 'all,"capabilities=compute,utility,graphics"'
 
 RUN_FLAGS = \
 	--rm \
@@ -19,7 +19,7 @@ RUN_FLAGS = \
     -e DISPLAY=$(DISPLAY) \
     --volume=/tmp/.X11-unix:/tmp/.X11-unix \
 	--volume=${REPO_PATH}:${WORKDIR_PATH}:ro \
-	--volume=${HOME}/Documents:/root/Documents:ro \
+	--volume=${HOME}/Documents:/root/Documents \
 	${IMAGE_TAG}
 
 viz: image

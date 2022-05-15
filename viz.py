@@ -18,6 +18,7 @@ import itertools
 import re
 import os
 
+import cv2
 import numpy as np
 import open3d as o3d
 
@@ -25,12 +26,19 @@ import pfm
 
 
 def main():
-    pfmFilePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/disp1.pfm")
+    pfmFilePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/disp0.pfm")
     colorImagePath = os.path.expanduser("~/Documents/vizdata/middlebury/sticks/im0.png")
     pointCloud = pfmToPointCloud(pfmFilePath, colorImagePath)
+    #depthMap = pfmToPointCloud(pfmFilePath, colorImagePath)
+    #depthMapNormalized = cv2.normalize(depthMap, None,
+    #        alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+    #depthMapGray = (255 * depthMapNormalized).astype(np.uint8)
+    #depthMapJet = cv2.applyColorMap(depthMapGray, cv2.COLORMAP_JET)
+    #outputPath = os.path.expanduser("~/Documents/vinhtest2.png")
+    #cv2.imwrite(outputPath, depthMapJet)
 
     box = o3d.geometry.TriangleMesh.create_box()
-    o3d.visualization.draw_geometries([box, pointCloud])
+    o3d.visualization.draw_geometries([pointCloud])
 
 
 def pfmToPointCloud(pfmFilePath, colorImagePath=""):
@@ -51,6 +59,10 @@ def pfmToPointCloud(pfmFilePath, colorImagePath=""):
         pointCloud.colors = o3d.utility.Vector3dVector(colorImage.reshape(-1, 3)/255)
 
     return pointCloud
+
+
+def imwrite(imagePath: str, image: np.array):
+    o3d.io.write_image(imagePath, o3d.geometry.Image(image))
 
 
 def readCalibration(calibFilePath):
@@ -78,8 +90,8 @@ def intrinsicStringToMatrix(intrinsicString):
 
 def disparityToDepth(disparityMap, focalLengthPx, baseline):
     # z = fB / d
-    z = focalLengthPx * baseline / disparityMap
-    return z
+    depthMap = focalLengthPx * baseline / disparityMap
+    return depthMap
 
 
 def depthMapToPointMap(depthMap, intrinsicMatrix):
@@ -96,8 +108,8 @@ def depthMapToPointMap(depthMap, intrinsicMatrix):
     return pointMap
 
 
-def readColorData(colorDataPath) -> np.array:
-    colorImage = o3d.io.read_image(colorDataPath)
+def readColorData(colorImagePath) -> np.array:
+    colorImage = o3d.io.read_image(colorImagePath)
     return np.asarray(colorImage)
 
 

@@ -47,6 +47,19 @@ class TestViz(unittest.TestCase):
         # Then:
         self.assertEqual(depthMap.shape, disparityMap.shape)
 
+    def testdepthMapToPointMap(self):
+        # Given:
+        width = 640
+        height = 480
+        depthMap = 1 / np.arange(width * height).reshape(height, width).astype(np.float32)
+
+        # When:
+        pointMap = viz.depthMapToPointMap(depthMap, self.intrinsicMatrix)
+
+        # Then:
+        self.assertEqual(pointMap.shape[:2], depthMap.shape[:2])
+        self.assertEqual(pointMap.shape[2], 3)
+
 
 if __name__ == "__main__":
     unittest.main()

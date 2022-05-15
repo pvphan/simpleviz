@@ -14,6 +14,7 @@ TODO: arg parse:
   use extension to automatically cast / convert data
 """
 import argparse
+import itertools
 import re
 import os
 
@@ -41,7 +42,9 @@ def pfmToPointCloud(pfmFilePath):
     intrinsicMatrix, baseline = readCalibration(calibFilePath)
     focalLengthPx = intrinsicMatrix[0, 0]
 
-    points = disparityToDepth(disparityMap, focalLengthPx, baseline)
+    depthMap = disparityToDepth(disparityMap, focalLengthPx, baseline)
+    pointMap = depthMapToPointMap(depthMap)
+    points = pointMap.reshape(-1, 3)
 
     pointCloud = o3d.geometry.PointCloud()
     pointCloud.points = o3d.utility.Vector3dVector(points)
@@ -75,6 +78,19 @@ def disparityToDepth(disparityMap, focalLengthPx, baseline):
     # z = fB / d
     z = focalLengthPx * baseline / disparityMap
     return z
+
+
+def depthMapToPointMap(depthMap, intrinsicMatrix):
+    # uv1 = K * xy1
+    # ==> xy1 = K^-1 * uv1
+    height, width = depthMap.shape[:2]
+    imageCoordinates = np.array(list(itertools.product(range(height), range(width))))
+    imageCoordinatesHom = np.hstack((imageCoordinates, np.ones((height * width, 1))))
+    intrinsicMatrixInv = np.linalg.inv(intrinsicMatrix)
+    normalizedPointMap = (intrinsicMatrixInv @ imageCoordinatesHom.T).T
+    pointMapArray = depthMap.reshape(-1, 1) * normalizedPointMap
+    pointMap = pointMapArray.reshape(height, width, 3)
+    return pointMap
 
 
 def readColorData(colorDataPath) -> o3d.cpu.pybind.geometry.Image:

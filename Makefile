@@ -16,14 +16,13 @@ RUN_FLAGS = \
 	--rm \
 	-it \
 	${GPU_FLAG} \
-	--network=host \
     -e DISPLAY=$(DISPLAY) \
     --volume=/tmp/.X11-unix:/tmp/.X11-unix \
-	--volume=${REPO_PATH}:${WORKDIR_PATH} \
-	--volume=${HOME}/Documents:/root/Documents \
+	--volume=${REPO_PATH}:${WORKDIR_PATH}:ro \
+	--volume=${HOME}/Documents:/root/Documents:ro \
 	${IMAGE_TAG}
 
-visualize: image
+viz: image
 	docker run ${RUN_FLAGS} python viz.py -c $(COLOR) -d $(DEPTH)
 
 shell: image

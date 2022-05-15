@@ -39,8 +39,9 @@ def pfmToPointCloud(pfmFilePath):
     disparityMap = pfm.pfmFileToDisparityMap(pfmFilePath)
     calibFilePath = f"{os.path.dirname(pfmFilePath)}/calib.txt"
     intrinsicMatrix, baseline = readCalibration(calibFilePath)
+    focalLengthPx = intrinsicMatrix[0, 0]
 
-    points = disparityToDepth(disparityMap, intrinsicMatrix, baseline)
+    points = disparityToDepth(disparityMap, focalLengthPx, baseline)
 
     pointCloud = o3d.geometry.PointCloud()
     pointCloud.points = o3d.utility.Vector3dVector(points)
@@ -70,8 +71,10 @@ def intrinsicStringToMatrix(intrinsicString):
     return np.array(values, dtype=np.float32).reshape(3,3)
 
 
-def disparityToDepth():
-    pass
+def disparityToDepth(disparityMap, focalLengthPx, baseline):
+    # z = fB / d
+    z = focalLengthPx * baseline / disparityMap
+    return z
 
 
 def readColorData(colorDataPath) -> o3d.cpu.pybind.geometry.Image:

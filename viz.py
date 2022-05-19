@@ -54,10 +54,6 @@ def pfmToPointCloud(pfmFilePath, colorImagePath=""):
     return pointCloud
 
 
-def imwrite(imagePath: str, image: np.array):
-    o3d.io.write_image(imagePath, o3d.geometry.Image(image))
-
-
 def readCalibration(calibFilePath):
     parameters = {}
     with open(calibFilePath, "r") as file:
@@ -94,8 +90,8 @@ def depthMapToPointMap(depthMap, intrinsicMatrix):
     imageCoordinates = 0.5 + np.array(list(itertools.product(range(height), range(width))))
     imageCoordinatesHom = np.hstack((imageCoordinates, np.ones((height * width, 1))))
     intrinsicMatrixInv = np.linalg.inv(intrinsicMatrix)
-    normalizedPointMap = (intrinsicMatrixInv @ imageCoordinatesHom.T).T
-    pointMapArray = depthMap.reshape(-1, 1) * normalizedPointMap
+    normalizedPointMapArray = (intrinsicMatrixInv @ imageCoordinatesHom.T).T
+    pointMapArray = depthMap.reshape(-1, 1) * normalizedPointMapArray
     pointMap = pointMapArray.reshape(height, width, 3)
     return pointMap
 

@@ -1,4 +1,5 @@
 Session.vim
+__pycache__/
 
 # Files created by Open3D keyboard shortcuts
 *.json

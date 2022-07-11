@@ -77,7 +77,7 @@ def readCalibration(calibFilePath):
 def intrinsicStringToMatrix(intrinsicString):
     expression = ".(\d+\.\d+)|(\d+)"
     matches = re.findall(expression, intrinsicString)
-    values = [float(sorted(match)[-1]) for match in matches]
+    values = [float(sorted(matchPair)[1]) for matchPair in matches]
     return np.array(values, dtype=np.float32).reshape(3,3)
 
 
